@@ -6,6 +6,11 @@ import { CgMergeVertical, CgMergeHorizontal } from "react-icons/cg";
 import { IoMdUndo, IoMdRedo, IoIosImage } from "react-icons/io";
 
 const Main = () => {
+  const [property, setProperty] = useState({
+    name: "brightness",
+    maxValue: 200,
+  });
+
   const [state, setState] = useState({
     image: "",
     brightness: 100,
@@ -18,6 +23,27 @@ const Main = () => {
     vertical: 0,
     horizontal: 0,
   });
+
+  const inputHandle = (e) => {
+    setState({
+      ...state,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const leftRotate = () => {
+    setState({
+      ...state,
+      rotate: state.rotate - 90,
+    });
+  };
+  const rightRotate = () => {
+    setState({
+      ...state,
+      rotate: state.rotate + 90,
+    });
+  };
+
   const imageHandle = (e) => {
     if (e.target.files.length !== 0) {
       const reader = new FileReader();
@@ -31,8 +57,6 @@ const Main = () => {
       reader.readAsDataURL(e.target.files[0]);
     }
   };
-
-  console.log(state);
 
   return (
     <div className="image_editor">
@@ -48,7 +72,15 @@ const Main = () => {
                 <span>Filter</span>
                 <div className="filter_key">
                   {filterElement.map((v, i) => (
-                    <button key={i}>{v.name}</button>
+                    <button
+                      className={
+                        property.name === v.name ? "active" : undefined
+                      }
+                      onClick={() => setProperty(v)}
+                      key={i}
+                    >
+                      {v.name}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -58,7 +90,13 @@ const Main = () => {
                   <label htmlFor="range">Rotate</label>
                   <span>100%</span>
                 </div>
-                <input type="range" />
+                <input
+                  name={property.name}
+                  onChange={inputHandle}
+                  value={state[property.name]}
+                  max={property.maxValue}
+                  type="range"
+                />
               </div>
 
               {/*rotate*/}
@@ -67,10 +105,10 @@ const Main = () => {
                   <label htmlFor="">Rotate & Flip</label>
                 </div>
                 <div className="icon">
-                  <div>
+                  <div onClick={leftRotate}>
                     <GrRotateLeft />
                   </div>
-                  <div>
+                  <div onClick={rightRotate}>
                     <GrRotateRight />
                   </div>
                   <div>
@@ -90,14 +128,16 @@ const Main = () => {
           <div className="image_section">
             <div className="image">
               {state.image ? (
-                <img
-                  style={{
-                    filter: `brightness(${state.brightness}%) grayscale(${state.grayscale}%) sepia(${state.sepia}%) saturate(${state.saturate}%) contrast(${state.contrast}%) hue-rotate(${state.hueRotate}deg)`,
-                    transform: `rotate(${state.rotate}deg) scale(${state.vertical}, scale(${state.horizontal})`,
-                  }}
-                  src={state.image}
-                  alt="image"
-                />
+                <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
+                  <img
+                    style={{
+                      filter: `brightness(${state.brightness}%) brightness(${state.brightness}%) sepia(${state.sepia}%) saturate(${state.saturate}%) contrast(${state.contrast}%) grayscale(${state.grayscale}%) hue-rotate(${state.hueRotate}deg)`,
+                      transform: `rotate(${state.rotate}deg) scale(${state.vertical},${state.horizontal})`,
+                    }}
+                    src={state.image}
+                    alt=""
+                  />
+                </ReactCrop>
               ) : (
                 <label htmlFor="choose">
                   <IoIosImage />
