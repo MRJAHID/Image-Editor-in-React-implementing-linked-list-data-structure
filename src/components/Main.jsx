@@ -6,6 +6,7 @@ import { CgMergeVertical, CgMergeHorizontal } from "react-icons/cg";
 import { IoMdUndo, IoMdRedo, IoIosImage } from "react-icons/io";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import storeData from "./linkedList";
 
 const Main = () => {
   const [property, setProperty] = useState({
@@ -14,7 +15,6 @@ const Main = () => {
   });
 
   const [details, setDetails] = useState("");
-  console.log(details);
   const [crop, setCrop] = useState("");
 
   const [state, setState] = useState({
@@ -42,12 +42,18 @@ const Main = () => {
       ...state,
       rotate: state.rotate - 90,
     });
+    const stateData = state;
+    stateData.rotate = state.rotate - 90;
+    storeData.insert(stateData);
   };
   const rightRotate = () => {
     setState({
       ...state,
       rotate: state.rotate + 90,
     });
+    const stateData = state;
+    stateData.rotate = state.rotate + 90;
+    storeData.insert(stateData);
   };
 
   const leftFlip = () => {
@@ -55,23 +61,54 @@ const Main = () => {
       ...state,
       vertical: state.vertical === 1 ? -1 : 1,
     });
+    const stateData = state;
+    stateData.vertical = state.vertical === 1 ? -1 : 1;
+    storeData.insert(stateData);
   };
   const rightFlip = () => {
     setState({
       ...state,
       horizontal: state.horizontal === 1 ? -1 : 1,
     });
+    const stateData = state;
+    stateData.horizontal = state.horizontal === 1 ? -1 : 1;
+    storeData.insert(stateData);
+  };
+
+  const redo = () => {
+    const data = storeData.redoEdit();
+    if (data) {
+      setState(data);
+    }
+  };
+  const undo = () => {
+    const data = storeData.undoEdit();
+    if (data) {
+      setState(data);
+    }
   };
 
   const imageHandle = (e) => {
     if (e.target.files.length !== 0) {
       const reader = new FileReader();
-
       reader.onload = () => {
         setState({
           ...state,
           image: reader.result,
         });
+        const stateData = {
+          image: reader.result,
+          brightness: 100,
+          grayscale: 0,
+          sepia: 0,
+          saturate: 100,
+          contrast: 100,
+          hueRotate: 0,
+          rotate: 0,
+          vertical: 1,
+          horizontal: 1,
+        };
+        storeData.insert(stateData);
       };
       reader.readAsDataURL(e.target.files[0]);
     }
@@ -215,10 +252,10 @@ const Main = () => {
               )}
             </div>
             <div className="image_select">
-              <button className="undo">
+              <button onClick={undo} className="undo">
                 <IoMdUndo />
               </button>
-              <button className="redo">
+              <button onClick={redo} className="redo">
                 <IoMdRedo />
               </button>
               {crop && (
