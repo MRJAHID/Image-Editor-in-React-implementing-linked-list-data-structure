@@ -102,10 +102,26 @@ const Main = () => {
   };
 
   const saveImg = () => {
-    setState({
-      ...state,
-      horizontal: state.horizontal === 1 ? -1 : 1,
-    });
+    const canvas = document.createElement("canvas");
+    canvas.width = details.naturalWidth;
+    canvas.height = details.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.filter = `brightness(${state.brightness}%) brightness(${state.brightness}%) sepia(${state.sepia}%) saturate(${state.saturate}%) contrast(${state.contrast}%) grayscale(${state.grayscale}%) hue-rotate(${state.hueRotate}deg)`;
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((state.rotate * Math.PI) / 180);
+    ctx.scale(state.vertical, state.horizontal);
+
+    ctx.drawImage(
+      details,
+      -canvas.width / 2,
+      -canvas.height / 2,
+      canvas.width,
+      canvas.height
+    );
+    const link = document.createElement("a");
+    link.download = "image_edit.jpg";
+    link.href = canvas.toDataURL();
+    link.click();
   };
 
   return (
