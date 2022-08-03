@@ -4,12 +4,18 @@ import filterElement from "./filterElement";
 import { GrRotateLeft, GrRotateRight } from "react-icons/gr";
 import { CgMergeVertical, CgMergeHorizontal } from "react-icons/cg";
 import { IoMdUndo, IoMdRedo, IoIosImage } from "react-icons/io";
+import ReactCrop from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 
 const Main = () => {
   const [property, setProperty] = useState({
     name: "brightness",
     maxValue: 200,
   });
+
+  const [details, setDetails] = useState("");
+  console.log(details);
+  const [crop, setCrop] = useState("");
 
   const [state, setState] = useState({
     image: "",
@@ -20,8 +26,8 @@ const Main = () => {
     contrast: 100,
     hueRotate: 0,
     rotate: 0,
-    vertical: 0,
-    horizontal: 0,
+    vertical: 1,
+    horizontal: 1,
   });
 
   const inputHandle = (e) => {
@@ -44,6 +50,19 @@ const Main = () => {
     });
   };
 
+  const leftFlip = () => {
+    setState({
+      ...state,
+      vertical: state.vertical === 1 ? -1 : 1,
+    });
+  };
+  const rightFlip = () => {
+    setState({
+      ...state,
+      horizontal: state.horizontal === 1 ? -1 : 1,
+    });
+  };
+
   const imageHandle = (e) => {
     if (e.target.files.length !== 0) {
       const reader = new FileReader();
@@ -56,6 +75,37 @@ const Main = () => {
       };
       reader.readAsDataURL(e.target.files[0]);
     }
+  };
+  const imgCrop = () => {
+    const canvas = document.createElement("canvas");
+    const scaleX = details.naturalWidth / details.width;
+    const scaleY = details.naturalHeight / details.height;
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(
+      details,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width,
+      crop.height
+    );
+    const base64Url = canvas.toDataURL("image/jpg");
+    setState({
+      ...state,
+      image: base64Url,
+    });
+  };
+
+  const saveImg = () => {
+    setState({
+      ...state,
+      horizontal: state.horizontal === 1 ? -1 : 1,
+    });
   };
 
   return (
@@ -111,10 +161,10 @@ const Main = () => {
                   <div onClick={rightRotate}>
                     <GrRotateRight />
                   </div>
-                  <div>
+                  <div onClick={leftFlip}>
                     <CgMergeVertical />
                   </div>
-                  <div>
+                  <div onClick={rightFlip}>
                     <CgMergeHorizontal />
                   </div>
                 </div>
@@ -122,7 +172,9 @@ const Main = () => {
             </div>
             <div className="reset">
               <button className="">Reset</button>
-              <button className="save">Save Image</button>
+              <button onClick={saveImg} className="save">
+                Save Image
+              </button>
             </div>
           </div>
           <div className="image_section">
@@ -130,6 +182,7 @@ const Main = () => {
               {state.image ? (
                 <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
                   <img
+                    onLoad={(e) => setDetails(e.currentTarget)}
                     style={{
                       filter: `brightness(${state.brightness}%) brightness(${state.brightness}%) sepia(${state.sepia}%) saturate(${state.saturate}%) contrast(${state.contrast}%) grayscale(${state.grayscale}%) hue-rotate(${state.hueRotate}deg)`,
                       transform: `rotate(${state.rotate}deg) scale(${state.vertical},${state.horizontal})`,
@@ -152,7 +205,11 @@ const Main = () => {
               <button className="redo">
                 <IoMdRedo />
               </button>
-              <button className="crop">Crop Image</button>
+              {crop && (
+                <button onClick={imgCrop} className="crop">
+                  Crop Image
+                </button>
+              )}
               <label htmlFor="choose">Choose Image</label>
               <input onChange={imageHandle} type="file" id="choose" />
             </div>
